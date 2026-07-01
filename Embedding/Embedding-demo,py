@@ -1,0 +1,36 @@
+import os
+# 👇 必须放在所有相关 import 之前！
+#解决下载模型慢的问题
+os.environ['HF_ENDPOINT'] = 'https://hf-mirror.com' 
+
+from sentence_transformers import SentenceTransformer
+from sklearn.metrics.pairwise import cosine_similarity
+
+# ================= 第一步：加载模型 =================
+# 首次运行会自动从HuggingFace下载模型(约100MB)
+# 如果下载慢，可在代码最前面加上:
+# import os
+# os.environ['HF_ENDPOINT'] = 'https://hf-mirror.com'
+model = SentenceTransformer('BAAI/bge-small-zh-v1.5')
+print("✅ 模型加载成功！")
+
+# ================= 第二步：准备文本 =================
+texts = [
+    "如何缓解偏头痛？",      
+    "治疗头部胀痛的有效方法",  
+    "今天晚上的股票行情分析"   
+]
+
+# ================= 第三步：批量转向量 =================
+vectors = model.encode(texts, normalize_embeddings=True)
+
+print(f"\n📊 向量化结果：")
+print(f"共 {len(vectors)} 条文本，每条变成了 {len(vectors[0])} 维的数字列表")
+print(f"第1条文本的前5个数字: {vectors[0][:5]}")
+
+# ================= 第四步：验证语义相似度 =================
+similarity_scores = cosine_similarity([vectors[0]], vectors[1:])[0]
+
+print(f"\n🔍 语义相似度验证：")
+print(f"'如何缓解偏头痛' vs '治疗头部胀痛' ➡️ {similarity_scores[0]:.4f}")
+print(f"'如何缓解偏头痛' vs '股票行情分析' ➡️ {similarity_scores[1]:.4f}")
